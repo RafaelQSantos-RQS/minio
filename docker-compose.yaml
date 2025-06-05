@@ -1,0 +1,55 @@
+name: ${PROJECT_NAME:-minio}
+
+networks:
+  web:
+    name: web
+    external: true
+
+services:
+  traefik:
+    image: traefik:${TRAEFIK_VERSION:-latest}
+    container_name: traefik_proxy
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    networks:
+      - web
+    volumes:
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  minio:
+    image: quay.io/minio/minio:${MINIO_VERSION:-latest}
+    # ports: # Uncomment and adjust to your needs, if you don't use Traefik
+    #   - ${MINIO_BIND_PORT_9000:-9000}:9000
+    #   - ${MINIO_BIND_PORT_9001:-9001}:9001
+    container_name: minio
+    volumes:
+      - ./data:/data # Bind the data directory to /data in the container
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "traefik.enable=true"
+
+      # --- Router for the MinIO Console ---
+      - "traefik.http.routers.minio-console.rule=Host(`console.minio.local`)"
+      - "traefik.http.routers.minio-console.entrypoints=web"
+      - "traefik.http.routers.minio-console.service=service-console"
+      - "traefik.http.services.service-console.loadbalancer.server.port=9001"
+
+      # --- Router for the MinIO S3 API ---
+      - "traefik.http.routers.minio-s3.rule=Host(`s3.minio.local`)"
+      - "traefik.http.routers.minio-s3.entrypoints=web"
+      - "traefik.http.routers.minio-s3.service=service-s3"
+      - "traefik.http.services.service-s3.loadbalancer.server.port=9000"
