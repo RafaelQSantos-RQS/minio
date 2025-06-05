@@ -15,7 +15,6 @@ Este repositório contém a infraestrutura como código (IaC) para um serviço d
 ## 🏗️ Diagrama da Arquitetura
 
 ![Diagrama da Arquitetura](img/arquitetura.svg) 
-*Exemplo de como linkar uma imagem que estaria no seu repositório.*
 
 ## 🚀 Como Executar
 
