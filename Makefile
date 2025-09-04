@@ -5,13 +5,13 @@ ifneq (,$(wildcard ./.env))
 	export
 endif
 
-COMPOSE_COMMAND           = docker compose --env-file .env
+COMPOSE_COMMAND			= docker compose --env-file .env
 
-ENV_FILE                  = .env
-ENV_TEMPLATE              = .env.template
+ENV_FILE				= .env
+ENV_TEMPLATE			= .env.template
 
-EXTERNAL_NETWORK_NAME    ?= web
-EXTERNAL_VOLUME_DATA     ?= vaultwarden-pgdata
+EXTERNAL_NETWORK_NAME	?= web
+MINIO_DATA_VOLUME		?= vaultwarden-pgdata
 
 .PHONY: help setup up down restart sync status logs pull validate _check-env-exists _create-env-from-template _create-network-if-not-exists _create-volume-if-not-exists
 
@@ -51,10 +51,10 @@ _create-network-if-not-exists:
 	@echo "✅ Network $(EXTERNAL_NETWORK_NAME) is ready."
 
 _create-volume-if-not-exists:
-	@echo "==> Checking for volume $(EXTERNAL_VOLUME_DATA)..."
-	@docker volume inspect $(EXTERNAL_VOLUME_DATA) >/dev/null 2>&1 || \
-		(echo "==> Volume $(EXTERNAL_VOLUME_DATA) not found. Creating..." && docker volume create $(EXTERNAL_VOLUME_DATA))
-	@echo "✅ Volume $(EXTERNAL_VOLUME_DATA) is ready."
+	@echo "==> Checking for volume $(MINIO_DATA_VOLUME)..."
+	@docker volume inspect $(MINIO_DATA_VOLUME) >/dev/null 2>&1 || \
+		(echo "==> Volume $(MINIO_DATA_VOLUME) not found. Creating..." && docker volume create $(MINIO_DATA_VOLUME))
+	@echo "✅ Volume $(MINIO_DATA_VOLUME) is ready."
 
 sync: ## 🔄 Syncs the local code with the remote 'main' branch (discards local changes!).
 	@echo "==> Syncing with the remote repository (origin/main)..."
